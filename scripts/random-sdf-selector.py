@@ -20,4 +20,4 @@ x=y+"_random_"+norm+".sdf"
 df = pt.LoadSDF(truepath)
 randsel=df.sample(n=num)
 pt.WriteSDF(randsel,x, properties=list(df.columns))
-print(norm+"random selection done from"+truepath)
+print(norm+" random molecules have been selected from "+basename)
