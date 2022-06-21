@@ -8,3 +8,4 @@ This repository containins tools built using RDKit to make life easier for chemi
 4. **synthetic_accessibility_scorer_SYBA.py**: Can calculate the synthetic accessibility scores for an SDF file. Requires RDKit and SYBA.
 5. **e3fp.multiprocessor.ipynb**: Can calculate the E3FP fingerprints for molecules in an SDF file. Requires RDKit and E3FP.
 6. **plip-tools**: Can generate pymol sessions for protein-ligand complexes in a folder (.pdb and .mae) formats.
+7. **graph-featurizer**: Functions to create graph objects as numpy arrays for molecules (.csv and .sdf) formats. Requires RDKit and networkx.
