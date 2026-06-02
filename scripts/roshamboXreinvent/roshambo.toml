@@ -1,0 +1,182 @@
+### REINVENT4 TOML input ###
+### Staged Learning Mode ###
+
+# General Options
+run_type = "staged_learning"
+device = "cuda:0"
+tb_logdir = "tb_logs"
+json_out_config = "_RLRoshambo.json"
+
+[parameters]
+# RL Parameters
+summary_csv_prefix = "summary_RL"
+use_checkpoint = false
+purge_memories = false
+batch_size = 64
+unique_sequences = true
+randomize_smiles = true
+
+# Reinvent Molecule Generator
+prior_file = "reinvent.prior"
+agent_file = "reinvent-agent.prior"
+
+# Learning Strategy Parameters
+[learning_strategy]
+type = "dap"
+sigma = 128
+rate = 0.0001
+
+# Diversity Filter Parameters
+[diversity_filter]
+type = "IdenticalMurckoScaffold"
+bucket_size = 25
+minscore = 0.4
+
+# Stage Parameters
+[[stage]]
+chkpt_file = "RL_calc.chkpt"
+termination = "simple"
+max_score = 0.8
+min_steps = 500
+max_steps = 1000
+
+# Scoring Components Parameters
+[stage.scoring]
+type = "geometric_mean"
+
+# Unwanted SMART patterns
+[[stage.scoring.component]]
+[stage.scoring.component.custom_alerts]
+[[stage.scoring.component.custom_alerts.endpoint]]
+name = "Unwanted_SMARTS"
+weight = 0.9
+
+params.smarts = [
+    # Large rings (8-17 membered)
+    "[*;r8]",
+    "[*;r9]",
+    "[*;r10]",
+    "[*;r11]",
+    "[*;r12]",
+    "[*;r13]",
+    "[*;r14]",
+    "[*;r15]",
+    "[*;r16]",
+    "[*;r17]",
+    
+    # Strained small rings
+    "[*;r3]",
+    "[*;r4]",
+    
+    # Reactive/unstable linkages
+    "[#8][#8]",
+    "[#16][#16]",
+    "[#6;+]",
+    "C#C",
+    
+    # Problematic heteroatom patterns
+    "[#7;!n][S;!$(S(=O)=O)]",
+    "[#7;!n][#7;!n]",
+    "C(=[O,S])[O,S]",
+    "[#7;!n][C;!$(C(=[O,N])[N,O])][#16;!s]",
+    "[#7;!n][C;!$(C(=[O,N])[N,O])][#7;!n]",
+    "[#7;!n][C;!$(C(=[O,N])[N,O])][#8;!o]",
+    "[#8;!o][C;!$(C(=[O,N])[N,O])][#16;!s]",
+    "[#8;!o][C;!$(C(=[O,N])[N,O])][#8;!o]",
+    "[#16;!s][C;!$(C(=[O,N])[N,O])][#16;!s]",
+    
+    # Reactive electrophiles/Michael acceptors
+    "C=CC(=O)",
+    "C=CC#N",
+    "C=C(C=O)C=O",
+    "[N,O,S]S(=O)(=O)F",
+    
+    # Problematic nitrogen groups
+    "N=N",
+    "[N;!n]=[N;!n]#N",
+    "[N;!n][N;!n]=O",
+    "[N+](=O)[O-]",
+    
+    # Toxicophores
+    "c1ccccc1[N+](=O)[O-]",
+    "[#6]=N[OH]",
+    "[S;D4](=O)(=O)O",
+    
+    # Pan-assay interference
+    "c1c(O)c(O)ccc1",
+    "c1c(O)cccc1O"
+]
+
+# MolecularWeight: Molecular weight (RDKit)
+[[stage.scoring.component]]
+[stage.scoring.component.MolecularWeight]
+[[stage.scoring.component.MolecularWeight.endpoint]]
+name = "molWT"
+weight = 1.00
+transform.type = "double_sigmoid"
+transform.low = 100.0
+transform.high = 500.0
+transform.coef_div = 100.0
+transform.coef_si = 20.0
+transform.coef_se = 20.0
+
+# SlogP: Crippen SLogP (RDKit)
+[[stage.scoring.component]]
+[stage.scoring.component.SlogP]
+[[stage.scoring.component.SlogP.endpoint]]
+name = "SlogP"
+weight = 1.00
+transform.type = "Sigmoid"
+transform.low = 0
+transform.high = 5
+transform.k = 0.50
+
+# TPSA: Topological polar surface area (RDKit)
+[[stage.scoring.component]]
+[stage.scoring.component.TPSA]
+[[stage.scoring.component.TPSA.endpoint]]
+name = "TPSA"
+weight = 1.00
+transform.type = "Sigmoid"
+transform.low = 0
+transform.high = 140
+transform.k = 0.50
+
+# HBondAcceptors: Number of hydrogen bond acceptors (RDKit)
+[[stage.scoring.component]]
+[stage.scoring.component.HBondAcceptors]
+[[stage.scoring.component.HBondAcceptors.endpoint]]
+name = "HBA"
+weight = 1.00
+transform.type = "Step"
+transform.high = 10.0
+transform.low = 0.0
+
+# HBondDonors: Number of hydrogen bond acceptors (RDKit)
+[[stage.scoring.component]]
+[stage.scoring.component.HBondDonors]
+[[stage.scoring.component.HBondDonors.endpoint]]
+name = "HBD"
+weight = 1.00
+transform.type = "Step"
+transform.high = 5.0
+transform.low = 0.0
+
+# NumRotBond: Number of rotatable bonds (RDKit)
+[[stage.scoring.component]]
+[stage.scoring.component.HBondDonors]
+[[stage.scoring.component.HBondDonors.endpoint]]
+name = "noRot"
+weight = 1.00
+transform.type = "Step"
+transform.high = 10.0
+transform.low = 0.0
+
+# Roshambo score
+[[stage.scoring.component]]
+[stage.scoring.component.ExternalProcess]
+[[stage.scoring.component.ExternalProcess.endpoint]]
+name = "Roshambo Score"
+weight = 3.0
+params.executable = "/home/cadd/miniforge3/envs/roshambo2/bin/python"
+params.args = "/home/cadd/PROJECTS/GENAI/rein4/roshambo2-based/development-scripts/runRoshambo.py /home/cadd/PROJECTS/GENAI/rein4/roshambo2-based/development-scripts/test"
