@@ -11,8 +11,8 @@ from confGenDirect import confGEN
 WARNING: Works only with Roshambo 2
 '''
 
-query_sdf = "/home/cadd/PROJECTS/phd/PCSK9/GENAI/rein4/roshambo2-based/development-scripts/deucravacitinib.sdf"
-confGEN_path = "/home/cadd/PROJECTS/phd/PCSK9/GENAI/rein4/roshambo2-based/development-scripts"
+query_sdf = "/home/cadd/PROJECTS/GENAI/rein4/roshambo2-based/development-scripts/deucravacitinib.sdf"
+confGEN_path = "/home/cadd/PROJECTS/GENAI/rein4/roshambo2-based/development-scripts"
 
 # Get the working directory from the reinvent4 command line argument
 if len(sys.argv) < 2:
